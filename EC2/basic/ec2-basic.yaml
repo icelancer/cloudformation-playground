@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: EC2 Instance Creation
+
+Parameters:
+  Environment:
+    Description: Environment Name
+    Type: String
+    AllowedValues: [development, production]
+    ConstraintDescription: must be development or production
+
+Mappings:
+  EnvironmentToInstanceType:
+    development:
+      instanceType: t3.micro
+    production:
+      instanceType: t3.small
+
+Resources:
+  EC2Server:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0b69ea66ff7391e80
+      InstanceType: !FindInMap [EnvironmentToInstanceType, !Ref Environment, instanceType]
+      KeyName: icelancer # EC2 접근에 필요한 키 페어
+      SecurityGroupIds:
+      - !Ref EC2SecurityGroup
+      Tags:
+      - Key: Name
+        Value: !Ref AWS::StackName
+
+  EC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: EC2 Basic Security Group. Created By CloudFormation.
+      GroupName: cf-sg-ec2-basic
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 80
+          ToPort: 80
+          IpProtocol: tcp
+        - CidrIp: 0.0.0.0/0
+          FromPort: 22
+          ToPort: 22
+          IpProtocol: tcp
